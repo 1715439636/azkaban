@@ -32,6 +32,7 @@ Azkaban文档, 请去[Azkaban Project Site](http://azkaban.github.io). 文档的
 
 需要帮助的，请到Azkaban Google小组: [Azkaban Group](https://groups.google.com/forum/?fromgroups#!forum/azkaban-dev)
 
+以下根据azkaban文档翻译，[文档地址](http://azkaban.github.io/azkaban/docs/latest/#solo-setup)
 
 介绍
 ------------
@@ -53,4 +54,27 @@ Azkaban是一个在LinkedIn开发用来跑Hadoop作业的一款批处理作业�
 
 概述
 ------------
-Azkaban是由LinkedIn实现的为了解决hadoop作业依赖问题一个批处理调度平台。
+Azkaban是由LinkedIn实现的为了解决hadoop作业依赖问题一个批处理调度平台。如果需要我们的作业按照顺序执行，从作业中ETL（抽取extract、转换transform、加载load）数据来分析产品，那么Azkaban将是一个很好的选择。
+
+随着hadoop用户数量的增长，从最初的单个服务器的解决方案，Azkaban已经演变成更加健壮的解决方案。
+
+Azkaban包含了3个关键的组件
+
+* 关系型数据库服务器 (MySQL)
+* Azkaban Web服务器 （AzkabanWebServer）
+* Azkaban 执行服务器 （AzkabanExecutorServer）
+
+![](https://github.com/silence940109/azkaban/blob/master/image/azkaban2overviewdesign.png)
+
+###关系型数据库（MySQL）
+Azkaban使用MySQL来存储他本身的状态信息，同样的AzkabanWebServer
+和AzkabanExecutorServer也使用数据库。
+
+####AzkabanWebServer怎么要使用数据库？
+web服务器使用数据库有如下原因：
+
+* 工程管理
+
+
+
+
