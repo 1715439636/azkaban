@@ -104,6 +104,69 @@ Azkaban之前的版本在同一台服务器上有AzkabanWebServer和AzkabanExecu
 
 在Solo服务器模式中，数据库是使用H2，并且web服务器和执行器服务器运行在同一个进程当中，如果只是其中一个服务器想做某些事，这是非常有用的。它同样的夜可以使用在小规模的测试用例。
 
-**1.下载和安装Solo服务器安装包**
+##1.下载和安装Solo服务器安装包
 
-**2.安装Azkabn插件**
+**构建AzkabanSolo服务器**
+
+在Azkaban2.5中有一种solo服务器模式来让你尝试使用Azkaban或者在一些小规模和安全性低的环境下使用。
+
+它的特性有：
+
+* 简单安装 - MySQL不是必须的，它内置了H2数据库来作为主要的实例存储
+* 方便启动 - web服务器和执行器服务器运行在同一个进程中
+* 丰富的特性 - 它包含Azkaban所有的特性，你可以正常使用它或者为它安装插件
+
+**安装Solo服务器**
+
+可以从[下载页](https://azkaban.github.io/downloads.html****)获取azkaban-exec-server安装包.
+
+你也可以克隆[Github仓库](https://github.com/azkaban/azkaban2)，你可以从主分支上编译最新的版本，并且完成从源代码上编译.
+
+从安装包上解压到目录下，解压后，里面应该有如下的目录：
+
+
+	文件夹                    描述
+    bin                      启动Azkaban的jerry服务器脚本
+    conf                     Azkaban solo服务器配置信息
+    lib                      Azkaban依赖的jar包
+    extlib                   额外的jar包，这些jar包将会被添加到Azkaban的类路径下
+    plugins                  插件安装的目录
+    web                      Azkaban web服务器的web(css,javascript,image)文件
+
+在`conf`目录中必须有三个文件：
+
+* azkaban.private.properties - Azkaba运行时参数信息
+* azkaban.properties - Azkaba运行时参数信息
+* global.properties - 工具静态属性，用于给每个工作流和作业分享属性信息
+* azkaban-users.xml - 用来添加用户和角色权限，如果XmLUserManager如果没有构建的话这个文件是没有用的
+
+azkaban.properties文件是主要的配置文件
+
+###为SSL获取秘钥
+Azkaban solo服务器默认是不使用SSL协议的，但是你可以以同样的方式建立在单个服务器上，这是为什么：
+
+Azkaban web服务器可以使用SSL套接字建立连接，这意味着秘钥是可以得到的。你可以按照这个连接([http://docs.codehaus.org/display/JETTY/How+to+configure+SSL](http://docs.codehaus.org/display/JETTY/How+to+configure+SSL))的步骤创建一个，一旦秘钥文件被创建，Azkaban必须给出它 azkaban.properties位置和密码等信息，下面的属性应该要被重写：
+
+	jetty.keystore=keystore
+	jetty.password=password
+	jetty.keypassword=password
+	jetty.truststore=keystore
+	jetty.trustpassword=password
+
+###用户管理配置
+Azkaba使用用户管理来提供权限和用户角色，默认的，Azkaban包含和使用XmlUserManager从`azkaban-users.xml`文件中获取用户名和密码，这你可以在`azkaban.properties`文件中看到
+
+* user.manager.class=azkaban,user.XmlUserManager
+* user.manager.xml.file=conf/azkaban-user.xml
+
+###启动Web服务器
+下面的属性是在 `azkaban.properties文件中`用来配置jetty服务器的配置信息
+	
+	jetty.maxThreads=25
+	jetty.ssl.port=8081
+执行 bin/azkaban-solo-start.sh来启动solo服务器，如果要关闭，执行bin/azkaban-solo-shutdown.sh
+
+在你的浏览器中打开[http://localhost:8081/index](http://localhost:8081/index)连接
+      
+##2.安装Azkabn插件*
+
