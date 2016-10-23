@@ -137,7 +137,7 @@ Azkaban使用Gradle进行编译，它需要JDK的版本为8或者更高，自从
 
 
 	文件夹                    描述
-    bin                      启动Azkaban的jerry服务器脚本
+    bin                      启动Azkaban的jetty服务器脚本
     conf                     Azkaban solo服务器配置信息
     lib                      Azkaban依赖的jar包
     extlib                   额外的jar包，这些jar包将会被添加到Azkaban的类路径下
@@ -148,7 +148,7 @@ Azkaban使用Gradle进行编译，它需要JDK的版本为8或者更高，自从
 
 * azkaban.private.properties - Azkaba运行时参数信息
 * azkaban.properties - Azkaba运行时参数信息
-* global.properties - 工具静态属性，用于给每个工作流和作业分享属性信息
+* global.properties - 全局静态属性，用于给每个工作流和作业分享属性信息
 * azkaban-users.xml - 用来添加用户和角色权限，如果XmLUserManager如果没有构建的话这个文件是没有用的
 
 azkaban.properties文件是主要的配置文件
@@ -156,7 +156,7 @@ azkaban.properties文件是主要的配置文件
 ###为SSL获取秘钥
 Azkaban solo服务器默认是不使用SSL协议的，但是你可以以同样的方式建立在单个服务器上，这是为什么：
 
-Azkaban web服务器可以使用SSL套接字建立连接，这意味着秘钥是可以得到的。你可以按照这个连接([http://docs.codehaus.org/display/JETTY/How+to+configure+SSL](http://docs.codehaus.org/display/JETTY/How+to+configure+SSL))的步骤创建一个，一旦秘钥文件被创建，Azkaban必须给出它 azkaban.properties位置和密码等信息，下面的属性应该要被重写：
+Azkaban web服务器可以使用SSL套接字建立连接，这意味着秘钥是可以使用的。你可以按照这个连接([http://docs.codehaus.org/display/JETTY/How+to+configure+SSL](http://docs.codehaus.org/display/JETTY/How+to+configure+SSL))的步骤创建一个，一旦秘钥文件被创建，Azkaban必须给出它`azkaban.properties`文件位置和密码等信息，并且下面的属性应该要被重写：
 
 	jetty.keystore=keystore
 	jetty.password=password
@@ -179,7 +179,9 @@ Azkaba使用用户管理来提供权限和用户角色，默认的，Azkaban包�
 
 在你的浏览器中打开[http://localhost:8081/index](http://localhost:8081/index)连接
       
-###2.安装Azkabn插件*
+###2.安装Azkabn插件
+
+<br><br><br><br>
 
 ##双服务器模式
 双服务器模式需要更加严格的生产环境， 它的数据库应该依赖主从架构的mysql实例，web服务器和执行器的服务器应当运行在不同的进程当中以便在升级和维护时不会影响到用户
@@ -206,3 +208,95 @@ Azkaba使用用户管理来提供权限和用户角色，默认的，Azkaban包�
 
 	mysql> GRANT SELECT,INSERT,UPDATE,DELETE ON <database>.* to '<username>'@'%' WITH GRANT OPTION;
 
+数据包的大小的配置信息需要配置。MySQL可能已经有了，默认的，该数据包的大小是比较低的。为了增加它，你需要设置`max_allowed_packet `属性更大的值，比如说1024M
+
+在Linux配置，打开`/etc/my.cnf`，在`mysqld`后面添加如下
+
+	[mysqld]
+	...
+	max_allowed_packet=1024M
+
+重新启动MySQL，运行一下脚本...
+
+	$ sudo /sbin/service mysqld restart
+
+(3).创建Azkaban表结构
+
+从[下载页](http://azkaban.github.io/downloads.html)下载azkaban的数据库脚本文件，里面包含了azkaban框架创建表的脚本，由于我已经在本地编译过，然后把create-all-sql脚本放在[下载](https://github.com/silence940109/azkaban/blob/master/script/create-all-sql-3.5.0.sql)文件中
+
+在MySQL实例中运行单独的创建表的脚本来创建你的表，另外，你也可以运行`create-table-sql`脚本，那些以update开头的脚本可以被忽略掉
+
+(4).获得JDBC连接的JAR包
+
+因为多种原因，Azkaban没有MySQL JDBC的连接驱动，你可以在这[下载](http://www.mysql.com/downloads/connector/j/)
+
+这个jar依赖在web服务器和执行器服务器上都需要被使用到，所以应当放置在/extlib下
+
+
+###2.下载和安装Web服务器，建立Azkaban Web服务器
+AzkabanWeb服务器解决了项目管理、权限验证、调度以及触发器的执行
+
+安装Web服务器
+
+在原来的文档中所介绍的下载azkaban web服务器的连接上面是没有资源的，所以你可以克隆下[azkaban github仓库](https://github.com/azkaban/azkaban2)，你可以自己完成最新版的azkaban的编译，你可以在[下载](https://github.com/silence940109/azkaban/blob/master/download/azkaban-web-server-3.5.0.tar.gz)
+
+解压安装包到目录中，安装目录应当和AzkabanExecutorServer目录不同，解压之后，里面应当有如下的目录：
+
+#
+	文件夹                    描述
+    bin                      启动Azkaban的jetty服务器脚本
+    conf                     Azkaban solo服务器配置信息
+    lib                      Azkaban依赖的jar包
+    extlib                   额外的jar包，这些jar包将会被添加到Azkaban的类路径下
+    plugins                  插件安装的目录
+    web                      Azkaban web服务器的web(css,javascript,image)文件
+#
+在conf文降价中应该有三个文件
+* `azkaban.properties` -Azkaban运行时所需要的参数
+* `global.properties` - 给工作流和作业共享的全局静态属性变量
+* `azkaban-users.xml` - 用来添加用户和角色权限信息，如果XmLUserManager没有创建那么这个问价是没有用的
+
+`azkaban.properties`文件是构建Azkaban时最主要的配置文件
+
+###为SSL获取秘钥
+Azkaban solo服务器默认是不使用SSL协议的，但是你可以以同样的方式建立在单个服务器上，这是为什么：
+
+Azkaban web服务器可以使用SSL套接字建立连接，这意味着秘钥是可以使用的。你可以按照这个连接([http://docs.codehaus.org/display/JETTY/How+to+configure+SSL](http://docs.codehaus.org/display/JETTY/How+to+configure+SSL))的步骤创建一个，一旦秘钥文件被创建，Azkaban必须给出它`azkaban.properties`文件位置和密码等信息，并且下面的属性应该要被重写：
+
+	jetty.keystore=keystore
+	jetty.password=password
+	jetty.keypassword=password
+	jetty.truststore=keystore
+	jetty.trustpassword=password
+
+###数据库配置
+如果你还没有MySQL JDBC的驱动，你可以从[连接下载](http://www.mysql.com/downloads/connector/j/)下载
+
+把下载的jar包放置在`extlib`目录下，所有的额外的依赖都应当被放置在该目录下
+
+为了指出Azkaban Web是使用的哪个MySQL实例，你需要早azkaban.properties文件中添加下面的连接属性：
+	
+	database.type=mysql
+	mysql.port=3306
+	mysql.host=localhost
+	mysql.database=azkaban
+	mysql.user=azkaban
+	mysql.password=azkaban
+	mysql.numconnections=100
+
+目前Azkaban只支持MySQL数据库存储，因此，`database.type`属性总应该是`mysql`
+
+###用户管理配置
+Azkaban使用用户管理来提供权限和用户角色，默认的，Azkaban包含和使用XmlUserManager从`azkaban-users.xml`文件中获取用户名和密码，这你可以在`azkaban.properties`文件中看到
+
+	user.manager.class=azkaban,user.XmlUserManager
+	user.manager.xml.file=conf/azkaban-user.xml
+
+###启动Web服务器
+下面的属性是在 `azkaban.properties文件中`用来配置jetty服务器的配置信息
+	
+	jetty.maxThreads=25
+	jetty.ssl.port=8443
+执行 `bin/azkaban-web-start.sh`来启动AzkabanWebServer服务器，如果要关闭，执行`bin/azkaban-web-shutdown.sh`
+
+你可以通过浏览器访问web服务器进行测试
