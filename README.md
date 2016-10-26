@@ -300,3 +300,6 @@ Azkaban使用用户管理来提供权限和用户角色，默认的，Azkaban包
 执行 `bin/azkaban-web-start.sh`来启动AzkabanWebServer服务器，如果要关闭，执行`bin/azkaban-web-shutdown.sh`
 
 你可以通过浏览器访问web服务器进行测试
+
+
+###安装Executor服务器
